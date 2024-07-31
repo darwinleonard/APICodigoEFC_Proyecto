@@ -1,8 +1,11 @@
-﻿using APICodigoEFC.Context;
-using APICodigoEFC.Models;
+﻿
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using Infraestructure.Context;
+using Domain.Models;
+using Services.Services;
 
 namespace APICodigoEFC.Controllers
 {
@@ -12,29 +15,25 @@ namespace APICodigoEFC.Controllers
     {
 
         private readonly CodigoContext _context;
+        private InvoicesServices _service;
 
         public InvoicesController(CodigoContext context)
         {
             _context = context;
+            _service = new InvoicesServices(_context);
         }
 
         [HttpGet]
         public List<Invoice> GetByFilters(string? number)
         {
-            IQueryable<Invoice> query = _context.Invoices.Include(x => x.Customer).Where(x => x.IsActive);
-
-            if (!string.IsNullOrEmpty(number))
-                query = query.Where(x => x.Number.Contains(number));
-       
-
-            return query.ToList();
+            var invoices = _service.GetByFilters(number);
+            return invoices;
         }
 
         [HttpPost]
         public void Insert([FromBody] Invoice invoice)
         {
-            _context.Invoices.Add(invoice);
-            _context.SaveChanges();
+            _service.Insert(invoice);
         }
 
     }
